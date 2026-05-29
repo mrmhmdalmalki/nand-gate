@@ -1,0 +1,12 @@
+% NAND gate - standard ANSI/IEEE distinctive-shape symbol.
+% An AND shape with a bubble on the output (bubble = inversion).
+\documentclass[border=12pt]{standalone}
+\usepackage{circuitikz}
+\begin{document}
+\begin{circuitikz}[line width=0.8pt, scale=1.4, transform shape]
+  \node[nand port] (g) {};
+  \draw (g.in 1) -- ++(-1,0) node[left]{$A$};
+  \draw (g.in 2) -- ++(-1,0) node[left]{$B$};
+  \draw (g.out)  -- ++(1,0)  node[ocirc]{} node[right]{$Y=\overline{A\cdot B}$};
+\end{circuitikz}
+\end{document}
