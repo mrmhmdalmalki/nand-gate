@@ -25,15 +25,23 @@
     \node[red,font=\bfseries\small,right=1pt] at ( 0.6,3.85) {C};
   \end{scope}}
 
+% ground symbol (pic): same stroke as everything, just extra gap between bars
+\tikzset{gnd/.pic={
+  \draw
+    (0,0) -- (0,-0.18)
+    (-0.34,-0.18) -- (0.34,-0.18)
+    (-0.21,-0.37) -- (0.21,-0.37)
+    (-0.08,-0.56) -- (0.08,-0.56);
+}}
 \begin{document}
-\begin{tikzpicture}[line width=1pt, font=\sffamily]
+\begin{tikzpicture}[line width=0.8pt, font=\sffamily]
   \ctikzset{tripoles/thickness=1, bipoles/thickness=1}
 
   % ---------- power rails ----------
   \draw (-2,6.4) -- (9.6,6.4);
   \node[anchor=west] at (3.4,6.65) {$+5\,\mathrm{V}$ (Vcc)};
   \draw (-2,0) -- (9.6,0);
-  \draw (-1.4,0) -- (-1.4,-0.05) node[ground, scale=1.4]{};
+  \draw (-1.4,0) -- (-1.4,-0.05) pic{gnd};
   \node[anchor=west] at (-1.1,-0.45) {GND (0 V)};
 
   % ---------- transistors (Q2 left, Q1 right) ----------
@@ -44,7 +52,7 @@
   % emitter -> GND rail
   \draw (0.9,3.5) -- (0.9,0);  \fill (0.9,0) circle (1.6pt);
   % base -> R_B2 -> Input B
-  \draw (1.5,3.5) -- (1.5,2.9) to[R, l_={$R_{B2}=10\,\mathrm{k}\Omega$}] (1.5,1.1)
+  \draw (1.5,3.5) -- (1.5,2.9) to[R, l={$R_{B2}=10\,\mathrm{k}\Omega$}] (1.5,1.1)
         -- (1.5,0.6) node[ocirc]{} node[right]{\,Input $B$};
 
   % ===== series link: Q2 collector -> Q1 emitter =====

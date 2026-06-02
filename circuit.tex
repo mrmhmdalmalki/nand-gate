@@ -17,8 +17,17 @@
   \node[red,font=\bfseries\footnotesize,anchor=north west] at ($(#1.E)+(0.05,-0.05)$){E};
 }
 
+% ground symbol (pic): same stroke as everything, just extra gap between bars
+\tikzset{gnd/.pic={
+  \draw
+    (0,0) -- (0,-0.18)
+    (-0.34,-0.18) -- (0.34,-0.18)
+    (-0.21,-0.37) -- (0.21,-0.37)
+    (-0.08,-0.56) -- (0.08,-0.56);
+}}
 \begin{document}
-\begin{circuitikz}[american, line width=0.7pt]
+\begin{circuitikz}[american, line width=0.8pt]
+  \ctikzset{tripoles/thickness=1, bipoles/thickness=1, logic ports/thickness=1}
 
   % ---------- Supply rail (+5 V) ----------
   \draw (-1,6.5) -- (7,6.5);
@@ -36,7 +45,7 @@
   \draw (q1.E) -- (q2.C);
 
   % bottom emitter -> ground
-  \draw (q2.E) -- ++(0,-1.0) node[ground]{};
+  \draw (q2.E) -- ++(0,-1.0) pic{gnd};
 
   % pull-up from rail to top collector (= output node)
   \draw (q1.C) to[R, l_={$R_C=1\,\mathrm{k}\Omega$}] (3,6.5);

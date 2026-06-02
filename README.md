@@ -8,7 +8,7 @@ NAND gates alone.
 
 The AND shape with a **bubble** on the output (the bubble = inversion).
 
-<img src="images/symbol.png" width="400">
+<img src="images/symbol.png" width="460">
 
 ### Truth table
 
@@ -37,7 +37,7 @@ Two NPN transistors in **series** (stacked): the top transistor's emitter feeds 
 transistor's collector, the bottom emitter goes to ground, and a single pull-up resistor `R_C`
 connects the top collector (the output) to `+5 V`. Each input drives one base.
 
-<img src="images/circuit.png" width="640">
+<img src="images/circuit.png" width="900">
 
 How it works: current can only reach ground if **both** transistors conduct:
 
@@ -55,11 +55,11 @@ Series transistors give the AND condition; the pull-up output makes it inverting
 
 Two transistors stacked in series (Q1 on top of Q2). Identify each 2N3904's legs with the pinout (flat face toward you, legs down, **E B C** left to right), then wire as in the pin-labeled schematic above.
 
-<img src="images/pinout.png" width="300">
+<img src="images/pinout.png" width="360">
 
 The wiring picture below is the same circuit drawn the way the parts physically sit on the board (each TO-92 package with its legs pointing down), so each leg maps straight to where its wire goes:
 
-<img src="images/wiring.png" width="640">
+<img src="images/wiring.png" width="900">
 
 Connect each 2N3904 as follows:
 
