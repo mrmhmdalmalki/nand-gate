@@ -51,6 +51,29 @@ Series transistors give the AND condition; the pull-up output makes it inverting
 
 ---
 
+## Building it on a breadboard
+
+Two transistors stacked in series (Q1 on top of Q2). Identify each 2N3904's legs with the pinout (flat face toward you, legs down, **E B C** left to right), then wire as in the pin-labeled schematic above.
+
+<img src="images/pinout.png" width="300">
+
+The wiring picture below is the same circuit drawn the way the parts physically sit on the board (each TO-92 package with its legs pointing down), so each leg maps straight to where its wire goes:
+
+<img src="images/wiring.png" width="640">
+
+Connect each 2N3904 as follows:
+
+| Transistor | E (emitter) | B (base) | C (collector) |
+|:-----------|:------------|:---------|:--------------|
+| **Q1 (top)** | joined to Q2's collector | through R_B1 (10 kΩ) to Input A | through R_C (1 kΩ) to +5 V; this node is Output Y |
+| **Q2 (bottom)** | GND | through R_B2 (10 kΩ) to Input B | joined to Q1's emitter |
+
+Reminder: `+5 V` and `GND` are **nodes** (named connections), not physical positions, so the +5 V rail can be the top or the bottom rail of your board. If a result is wrong, the usual cause is a transistor's legs in the wrong holes, so re-check **E B C** against the pinout.
+
+Quick test: Output is GND only when both inputs are +5 V; otherwise it is +5 V.
+
+---
+
 ## Components
 
 ### Transistors: 2N3904  (×2: Q1, Q2)
@@ -94,7 +117,7 @@ Series transistors give the AND condition; the pull-up output makes it inverting
 - *NOR and NAND gates using transistor*, TheoryCircuit ([theorycircuit.com](https://theorycircuit.com/digital-electronics/nor-and-nand-gates-using-transistor/)).
 - *Logic Gates using Transistors*, Electronics Tutorials ([electronics-tutorials.ws](https://www.electronics-tutorials.ws/logic/logic-gates-using-transistors.html)).
 - P. Horowitz and W. Hill, *The Art of Electronics*, 3rd ed., Cambridge University Press, 2015 (the BJT used as a switch).
-- A. S. Sedra and K. C. Smith, *Microelectronic Circuits*, Oxford University Press (BJT switch and the logic inverter).
+- A. S. Sedra and K. C. Smith, *Microelectronic Circuits*, Oxford University Press (BJT switch and the logic NOT gate).
 - T. L. Floyd, *Digital Fundamentals*, Pearson (logic-gate symbols and truth tables).
 
 **Transistor part.** 2N3904 NPN, onsemi datasheet ([PDF](https://www.onsemi.com/pdf/datasheet/2n3904-d.pdf)), product page ([onsemi.com](https://www.onsemi.com/products/discrete-power-modules/general-purpose-and-low-vcesat-transistors/2n3904)).
