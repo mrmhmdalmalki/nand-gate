@@ -1,63 +1,101 @@
 % ============================================================
-%  NAND gate - transistor-level realization
-%  Two NPN transistors in SERIES (stacked) with one pull-up.
-%    Output is pulled to ground ONLY when BOTH conduct (A=B=1).
-%    If either input is 0 -> the chain breaks -> output to +5 V.
-%  => Y = NOT(A AND B)
+%  NAND gate - transistor-level schematic (COMPLEMENTARY / CMOS-style)
+%  Pull-up : two 2N3906 (PNP) in PARALLEL  (emitters -> +5 V)
+%  Pull-down: two 2N3904 (NPN) in SERIES   (bottom emitter -> GND)
+%  Each input drives one PNP and one NPN through its OWN base resistor.
+%    Output is LOW only when BOTH inputs are HIGH (both NPNs conduct);
+%    otherwise at least one PNP pulls the output HIGH.  => Y = NOT(A.B)
+%  Inputs and output each carry an indicator LED (220 ohm).
 %  Compile:  pdflatex circuit.tex
 % ============================================================
-\documentclass[border=12pt]{standalone}
+\documentclass[border=16pt]{standalone}
 \usepackage{circuitikz}
 \usepackage{amsmath}
+\usetikzlibrary{calc}
 
-% red C/B/E pin labels on a transistor (matches the physical 2N3904 legs)
-\newcommand{\pinlabels}[1]{%
-  \node[red,font=\bfseries\footnotesize,anchor=south west] at ($(#1.C)+(0.02,0.05)$){C};
-  \node[red,font=\bfseries\footnotesize,anchor=south east] at ($(#1.B)+(-0.02,0.05)$){B};
-  \node[red,font=\bfseries\footnotesize,anchor=north west] at ($(#1.E)+(0.05,-0.05)$){E};
+\newcommand{\pinlabelsN}[1]{%
+  \node[red,font=\bfseries\footnotesize,anchor=west] at ($(#1.C)+(0.22,0.16)$){C};
+  \node[red,font=\bfseries\footnotesize,anchor=south east] at ($(#1.B)+(-0.08,0.14)$){B};
+  \node[red,font=\bfseries\footnotesize,anchor=west] at ($(#1.E)+(0.22,-0.16)$){E};
 }
-
-% ground symbol (pic): same stroke as everything, just extra gap between bars
+\newcommand{\pinlabelsP}[1]{%
+  \node[red,font=\bfseries\footnotesize,anchor=west] at ($(#1.E)+(0.22,0.16)$){E};
+  \node[red,font=\bfseries\footnotesize,anchor=north east] at ($(#1.B)+(-0.08,-0.14)$){B};
+  \node[red,font=\bfseries\footnotesize,anchor=west] at ($(#1.C)+(0.22,-0.16)$){C};
+}
 \tikzset{gnd/.pic={
-  \draw
-    (0,0) -- (0,-0.18)
-    (-0.34,-0.18) -- (0.34,-0.18)
-    (-0.21,-0.37) -- (0.21,-0.37)
-    (-0.08,-0.56) -- (0.08,-0.56);
+  \draw (0,0) -- (0,-0.18) (-0.34,-0.18) -- (0.34,-0.18)
+        (-0.21,-0.37) -- (0.21,-0.37) (-0.08,-0.56) -- (0.08,-0.56);
 }}
+
 \begin{document}
-\begin{circuitikz}[american, line width=0.8pt]
-  \ctikzset{tripoles/thickness=1, bipoles/thickness=1, logic ports/thickness=1}
+\begin{circuitikz}[american, line width=1.1pt]
+  \ctikzset{tripoles/thickness=1, bipoles/thickness=1}
 
-  % ---------- Supply rail (+5 V) ----------
-  \draw (-1,6.5) -- (7,6.5);
-  \node[anchor=south] at (3,6.55) {\textbf{$V_{CC} = +5\,\mathrm{V}$}};
-  \fill (3,6.5) circle (1.6pt);
+  % ---------- supply rail (+5 V) ----------
+  \draw (-3.5,11) -- (17,11);
+  \node[anchor=south] at (7,11.05) {\textbf{$V_{CC}=+5\,\mathrm{V}$}};
 
-  % ---------- transistors (in series / stacked) ----------
-  \node[npn] (q1) at (3,4) {};   % top transistor (input A)
-  \node[npn] (q2) at (3,1.3) {}; % bottom transistor (input B)
-  \node[anchor=west] at ($(q1.E)+(0.45,0.15)$) {Q1};
-  \node[anchor=west] at ($(q2.E)+(0.45,0.15)$) {Q2};
-  \pinlabels{q1}\pinlabels{q2}
+  % ===================== PULL-UP : two PNP in parallel =====================
+  \node[pnp] (pa) at (8,8.7) {};
+  \node[pnp] (pb) at (12,8.7) {};
+  \pinlabelsP{pa}\pinlabelsP{pb}
+  \node[font=\footnotesize,align=left,anchor=west] at (8.95,8.7) {Q3\\2N3906};
+  \node[font=\footnotesize,align=left,anchor=west] at (12.95,8.7) {Q4\\2N3906};
+  \draw (pa.E) -- (8,11);   \fill (8,11) circle (1.6pt);
+  \draw (pb.E) -- (12,11);  \fill (12,11) circle (1.6pt);
+  % both collectors -> output bus
+  \draw (pa.C) -- (8,6.0);
+  \draw (pb.C) -- (12,6.0);
+  \draw (8,6.0) -- (12,6.0);
 
-  % series link: emitter of Q1 -> collector of Q2
-  \draw (q1.E) -- (q2.C);
+  % ===================== OUTPUT node =====================
+  \coordinate (OUT) at (10,6.0);
+  \fill (OUT) circle (1.6pt);
+  \draw (OUT) -- (16.5,6.0) node[ocirc]{} node[right]{Output $Y=\overline{A\cdot B}$};
 
-  % bottom emitter -> ground
-  \draw (q2.E) -- ++(0,-1.0) pic{gnd};
+  % ===================== PULL-DOWN : two NPN in series =====================
+  \node[npn] (na) at (10,4.0) {};
+  \node[npn] (nb) at (10,1.3) {};
+  \pinlabelsN{na}\pinlabelsN{nb}
+  \node[font=\footnotesize,align=left,anchor=west] at (10.95,4.0) {Q1\\2N3904};
+  \node[font=\footnotesize,align=left,anchor=west] at (10.95,1.3) {Q2\\2N3904};
+  \draw (na.C) -- (OUT);                 % top NPN collector -> output
+  \draw (na.E) -- (nb.C);                % series link
+  \draw (nb.E) -- (10,0.2) pic{gnd};     % bottom NPN emitter -> GND
 
-  % pull-up from rail to top collector (= output node)
-  \draw (q1.C) to[R, l_={$R_C=1\,\mathrm{k}\Omega$}] (3,6.5);
+  % ===================== INPUT A (drives PNP Q3 and NPN Q1) =====================
+  \coordinate (Ain) at (-3.5,7.0);
+  \draw (Ain) node[ocirc]{} node[left]{Input $A$} -- (2.5,7.0);
+  \draw (2.5,7.0) -- (2.5,4.0);          % A rail
+  \fill (2.5,7.0) circle (1.6pt);  \fill (2.5,4.0) circle (1.6pt);
+  % A -> R_BA1 -> PNP Q3 base   (up to the PNP base height)
+  \draw (2.5,7.0) -- (2.5,8.7) to[R, l={$R_{A1}=10\,\mathrm{k}\Omega$}] (pa.B);
+  % A -> R_BA2 -> NPN Q1 base
+  \draw (2.5,4.0) to[R, l={$R_{A2}=10\,\mathrm{k}\Omega$}] (na.B);
+  % input LED on A
+  \draw (2.5,4.0) -- (2.5,2.6);
+  \draw (2.5,2.6) to[R, l_={$R_{inA}=220\,\Omega$}] (2.5,1.2)
+        to[leD, l_={LED$_{A}$}] (2.5,0.0) -- (2.5,-0.05) pic{gnd};
 
-  % inputs
-  \draw (-2,4) node[ocirc]{} node[left]{Input $A$}
-        to[R, l={$R_{B1}=10\,\mathrm{k}\Omega$}] (q1.B);
-  \draw (-2,1.3) node[ocirc]{} node[left]{Input $B$}
-        to[R, l={$R_{B2}=10\,\mathrm{k}\Omega$}] (q2.B);
+  % ===================== INPUT B (drives PNP Q4 and NPN Q2) =====================
+  \coordinate (Bin) at (-3.5,5.6);
+  \draw (Bin) node[ocirc]{} node[left]{Input $B$} -- (4.5,5.6);
+  \draw (4.5,5.6) -- (4.5,1.3);          % B rail
+  \fill (4.5,5.6) circle (1.6pt);  \fill (4.5,1.3) circle (1.6pt);
+  % B -> R_BB1 -> PNP Q4 base  (route up and over the top to the right PNP)
+  \draw (4.5,5.6) -- (4.5,10.4) to[R, l_={$R_{B1}=10\,\mathrm{k}\Omega$}] (11.3,10.4) -- (pb.B);
+  % B -> R_BB2 -> NPN Q2 base
+  \draw (4.5,1.3) to[R, l={$R_{B2}=10\,\mathrm{k}\Omega$}] (nb.B);
+  % input LED on B
+  \draw (4.5,1.3) -- (6.0,1.3);
+  \draw (6.0,1.3) to[R, l={$R_{inB}=220\,\Omega$}] (6.0,0.0)
+        to[leD, l={LED$_{B}$}] (6.0,-1.2) -- (6.0,-1.25) pic{gnd};
 
-  % output at the top collector
-  \draw (q1.C) -- ++(3,0) node[ocirc]{} node[right]{Output $Y=\overline{A\cdot B}$};
+  % ===================== OUTPUT LED =====================
+  \fill (14.5,6.0) circle (1.6pt);
+  \draw (14.5,6.0) to[R, l={$R_{out}=220\,\Omega$}] (14.5,4.1)
+        to[leD, l={LED$_{\mathrm{out}}$}] (14.5,2.9) -- (14.5,2.85) pic{gnd};
 
 \end{circuitikz}
 \end{document}

@@ -1,8 +1,11 @@
 # NAND Gate
 
-A NAND gate outputs `0` **only when both inputs are `1`**; otherwise it outputs `1`. It is
-the inverse of AND, and is the other *universal* gate: any logic circuit can be built from
-NAND gates alone.
+A NAND gate outputs `0` **only when both inputs are `1`**; otherwise it outputs `1`. It is the
+inverse of AND, and is a *universal* gate: any logic circuit can be built from NAND gates alone.
+
+This version is a **complementary (CMOS-style) gate** — the same idea as the NOT gate, extended
+to two inputs. The output is **actively driven** almost rail-to-rail (`~4.8 V` / `~0.2 V`) and
+draws almost no current at rest. Each input and the output carry an indicator LED.
 
 ### Symbol
 
@@ -19,56 +22,75 @@ The AND shape with a **bubble** on the output (the bubble = inversion).
 | 1 | 0 | 1 |
 | 1 | 1 | **0** |
 
-`Y = A NAND B = NOT(A AND B)`
+`Y = A NAND B = NOT(A · B)`
 
 ---
 
 ## What `0` and `1` really mean
 
-`0` is **not** an empty wire; it is the output **actively connected to ground (0 V)**
-through conducting transistors. `1` is the output connected to **+5 V**. A wire connected to
-*nothing* is a separate, undefined **floating** state, which we always avoid.
+`0` is the output **actively connected to ground (0 V)** through the conducting NPN transistors;
+`1` is the output **actively connected to +5 V** through a conducting PNP. One side or the other
+is always holding the output, so it is strong and never floats.
 
 ---
 
 ## How it is built
 
-Two NPN transistors in **series** (stacked): the top transistor's emitter feeds the bottom
-transistor's collector, the bottom emitter goes to ground, and a single pull-up resistor `R_C`
-connects the top collector (the output) to `+5 V`. Each input drives one base.
+Four transistors, arranged exactly like a CMOS NAND:
+
+> **Pull-down:** two **2N3904 (NPN)** in **series** (stacked) to ground.
+> **Pull-up:** two **2N3906 (PNP)** in **parallel** to +5 V.
 
 <img src="images/circuit.png" width="900">
 
-How it works: current can only reach ground if **both** transistors conduct:
+- **Pull-down (series NPN, Q1 + Q2):** the output can only be dragged to ground if **both** NPNs
+  conduct — i.e. only when **A and B are both HIGH**.
+- **Pull-up (parallel PNP, Q3 + Q4):** **either** PNP pulls the output up to `+5 V` whenever its
+  input is LOW.
+- Each input drives **one PNP and one NPN** through its **own base resistor** (so the
+  transistors never fight — see the NOT gate's note on separate base resistors).
 
-- **Both A and B are `1`:** both transistors ON, the chain completes, and the output is
-  **pulled down to ground** → `0`.
-- **Either input `0`:** that transistor is OFF, the chain is broken, so `R_C` **pulls the
-  output up to +5 V** → `1`.
+How it works:
 
-Series transistors give the AND condition; the pull-up output makes it inverting, so
-`Y = NOT(A AND B)`.
+- **Both A and B `1`:** both NPNs on (the series chain reaches ground), both PNPs off → output
+  **LOW** → `0`.
+- **Either input `0`:** that NPN is off (the series chain is broken) and that input's PNP is on
+  → output **pulled HIGH** → `1`.
+
+So `Y = NOT(A · B)`.
 
 ---
 
 ## Building it on a breadboard
 
-Two transistors stacked in series (Q1 on top of Q2). Identify each 2N3904's legs with the pinout (flat face toward you, legs down, **E B C** left to right), then wire as in the pin-labeled schematic above.
+Four transistors: **Q1, Q2 = 2N3904 (NPN)** and **Q3, Q4 = 2N3906 (PNP)**. All four share the
+same TO-92 pinout — flat face toward you, legs down, **E B C** from left to right:
 
 <img src="images/pinout.png" width="360">
 
-The wiring picture below is the same circuit drawn the way the parts physically sit on the board (each TO-92 package with its legs pointing down), so each leg maps straight to where its wire goes:
+The wiring picture below is the breadboard build, every connection a **colour-coded jumper**
+(see the legend). Each column of five holes in a bank is one node.
 
 <img src="images/wiring.png" width="900">
 
-Connect each 2N3904 as follows:
+Connect the four transistors as follows:
 
 | Transistor | E (emitter) | B (base) | C (collector) |
 |:-----------|:------------|:---------|:--------------|
-| **Q1 (top)** | joined to Q2's collector | through R_B1 (10 kΩ) to Input A | through R_C (1 kΩ) to +5 V; this node is Output Y |
-| **Q2 (bottom)** | GND | through R_B2 (10 kΩ) to Input B | joined to Q1's emitter |
+| **Q1 — 2N3904 (NPN, top of series)** | joined to Q2's collector (node *m*) | through R_A2 (10 kΩ) to Input A | **Output Y** |
+| **Q2 — 2N3904 (NPN, bottom of series)** | **GND** | through R_B2 (10 kΩ) to Input B | joined to Q1's emitter (node *m*) |
+| **Q3 — 2N3906 (PNP)** | **+5 V** | through R_A1 (10 kΩ) to Input A | **Output Y** |
+| **Q4 — 2N3906 (PNP)** | **+5 V** | through R_B1 (10 kΩ) to Input B | **Output Y** |
 
-Reminder: `+5 V` and `GND` are **nodes** (named connections), not physical positions, so the +5 V rail can be the top or the bottom rail of your board. If a result is wrong, the usual cause is a transistor's legs in the wrong holes, so re-check **E B C** against the pinout.
+The **Output Y** node is where Q1's collector and both PNP collectors meet. Then add the
+indicators:
+
+- **Input LEDs:** Input A → R_inA (220 Ω) → LED → GND; Input B → R_inB (220 Ω) → LED → GND.
+- **Output LED:** Output Y → R_out (220 Ω) → LED → GND.
+
+Reminder: `+5 V` and `GND` are **nodes**, not physical positions. If a result is wrong, the
+usual causes are a transistor's legs in the wrong holes, or **mixing up the 2N3904 (NPN) and
+2N3906 (PNP)** — they look identical, so mark them and re-check **E B C** against the pinout.
 
 Quick test: Output is GND only when both inputs are +5 V; otherwise it is +5 V.
 
@@ -76,26 +98,25 @@ Quick test: Output is GND only when both inputs are +5 V; otherwise it is +5 V.
 
 ## Components
 
-### Transistors: 2N3904  (×2: Q1, Q2)
+### Transistors: 2 × 2N3904 (NPN) + 2 × 2N3906 (PNP)
 
-- **Type:** **NPN** *bipolar junction transistor* (BJT), a current-controlled switch: a
-  small current into the **base** lets a much larger current flow from **collector** to
-  **emitter**. Here each transistor is used fully on/off, as a switch.
-- **Package:** TO-92 (small black half-cylinder of plastic with 3 legs).
-- **Pinout:** hold it with the **flat face toward you and the legs pointing down**, and the pins
-  are **E, B, C** (Emitter, Base, Collector) from left to right.
-- **Key ratings:** V_CE ≈ **40 V** max, I_C ≈ **200 mA** max, current gain *hFE* ≈ **100–300**.
-- **Why NPN (not PNP)?** The transistors are stacked from the output down to **ground**, and a
-  HIGH (+5 V) on a base turns that transistor ON. Only when **both** are on does the chain
-  reach ground and pull the output low. A PNP would need the circuit re-wired upside-down.
-- **Substitutes:** 2N2222, PN2222, BC547, or any general-purpose NPN. **Re-check the pinout.**
+The 2N3904 and 2N3906 are a **complementary pair** — same TO-92 package, same **E B C** pinout,
+opposite polarity. The NPNs do the series pull-down; the PNPs do the parallel pull-up.
+
+- **Key ratings:** V_CE(O) ≈ **40 V** max, I_C ≈ **200 mA** max, current gain *hFE* ≈ **100–300**.
+- **Substitutes:** BC547 (NPN) + BC557 (PNP), or 2N2222 (NPN) + 2N2907 (PNP) — any matched pair.
+  **Re-check the pinout.**
 
 ### Resistors
 
 | Ref | Value | Job |
 |:---:|:-----:|:----|
-| R_B1, R_B2 | **10 kΩ** | **Base resistors**, one per input; limit base current while switching the transistor fully on. |
-| R_C | **1 kΩ**  | **Collector pull-up**, provides the HIGH (+5 V) level and limits current when both transistors pull the output low. |
+| R_A1, R_A2, R_B1, R_B2 | **10 kΩ** | **Base resistors**, one per transistor; each input drives its PNP and NPN through separate resistors. |
+| R_inA, R_inB, R_out | **220 Ω** | **LED current limiters** (~13 mA). |
+
+### LEDs (×3)
+
+- Any standard indicator LED (forward voltage ≈ 1.8–2 V): one per input, one on the output.
 
 ### Power
 
@@ -108,21 +129,17 @@ Quick test: Output is GND only when both inputs are +5 V; otherwise it is +5 V.
 **Gate symbol.** The distinctive-shape symbol follows the ANSI/IEEE standard for logic graphic symbols:
 
 - IEEE Std 91-1984 and 91a-1991, *Graphic Symbols for Logic Functions* ([standards.ieee.org](https://standards.ieee.org/ieee/91_91a/241/)). The distinctive shapes originate from US MIL-STD-806; the international equivalent is IEC 60617-12.
-- Free explainer: Texas Instruments, *Overview of IEEE Standard 91-1984* (PDF) ([ti.com](https://www.ti.com/lit/ml/sdyz001a/sdyz001a.pdf)).
 - Symbols and truth tables overview: *Logic gate*, Wikipedia ([wikipedia.org](https://en.wikipedia.org/wiki/Logic_gate)).
 
-**Transistor circuit.** This NAND gate is two transistor switches in series (series = AND) with a pull-up output that inverts the result to NAND. It follows standard transistor switch logic:
+**Transistor circuit.** This NAND is a complementary CMOS-style gate — parallel PNP pull-up + series NPN pull-down, the bipolar analogue of the CMOS NAND:
 
-- *Resistor-Transistor Logic (RTL)*, Wikipedia ([wikipedia.org](https://en.wikipedia.org/wiki/Resistor%E2%80%93transistor_logic)).
-- *NOR and NAND gates using transistor*, TheoryCircuit ([theorycircuit.com](https://theorycircuit.com/digital-electronics/nor-and-nand-gates-using-transistor/)).
-- *Logic Gates using Transistors*, Electronics Tutorials ([electronics-tutorials.ws](https://www.electronics-tutorials.ws/logic/logic-gates-using-transistors.html)).
-- P. Horowitz and W. Hill, *The Art of Electronics*, 3rd ed., Cambridge University Press, 2015 (the BJT used as a switch).
-- A. S. Sedra and K. C. Smith, *Microelectronic Circuits*, Oxford University Press (BJT switch and the logic NOT gate).
-- T. L. Floyd, *Digital Fundamentals*, Pearson (logic-gate symbols and truth tables).
+- *CMOS NAND gate*, Wikipedia ([wikipedia.org](https://en.wikipedia.org/wiki/NAND_gate#CMOS)).
+- *Push–pull / complementary output*, Wikipedia ([wikipedia.org](https://en.wikipedia.org/wiki/Push%E2%80%93pull_output)).
+- P. Horowitz and W. Hill, *The Art of Electronics*, 3rd ed., Cambridge University Press, 2015.
+- A. S. Sedra and K. C. Smith, *Microelectronic Circuits*, Oxford University Press.
+- T. L. Floyd, *Digital Fundamentals*, Pearson.
 
-**Transistor part.** 2N3904 NPN, onsemi datasheet ([PDF](https://www.onsemi.com/pdf/datasheet/2n3904-d.pdf)), product page ([onsemi.com](https://www.onsemi.com/products/discrete-power-modules/general-purpose-and-low-vcesat-transistors/2n3904)).
-
-**Highlighted source (additional).** The exact building block this design uses, scroll-to-text highlighted on the Wikipedia RTL page: [“a common-emitter stage with a base resistor”](https://en.wikipedia.org/wiki/Resistor%E2%80%93transistor_logic#:~:text=common-emitter%20stage%20with%20a%20base%20resistor).
+**Transistor parts.** 2N3904 NPN, onsemi datasheet ([PDF](https://www.onsemi.com/pdf/datasheet/2n3904-d.pdf)). 2N3906 PNP, onsemi datasheet ([PDF](https://www.onsemi.com/pdf/datasheet/2n3906-d.pdf)).
 
 ---
 
@@ -131,8 +148,10 @@ Quick test: Output is GND only when both inputs are +5 V; otherwise it is +5 V.
 ```bash
 pdflatex circuit.tex
 pdflatex symbol.tex
-pdftoppm -png -r 600 circuit.pdf images/circuit   # -> images/circuit-1.png
-pdftoppm -png -r 600 symbol.pdf  images/symbol     # -> images/symbol-1.png
+pdflatex wiring.tex
+pdftoppm -png -r 400 circuit.pdf images/circuit   # -> images/circuit-1.png
+pdftoppm -png -r 400 symbol.pdf  images/symbol     # -> images/symbol-1.png
+pdftoppm -png -r 400 wiring.pdf  images/wiring     # -> images/wiring-1.png
 ```
 
 > Use `pdftoppm`, not `pdftocairo`, at high DPI the Cairo backend can garble the fonts.
