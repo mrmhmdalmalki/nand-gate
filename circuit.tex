@@ -3,12 +3,11 @@
 %  Pull-up : two 2N3906 (PNP) in PARALLEL  (emitters -> +5 V)
 %  Pull-down: two 2N3904 (NPN) in SERIES   (bottom emitter -> GND)
 %  Each input drives one PNP and one NPN through its OWN base resistor.
-%    Output is LOW only when BOTH inputs are HIGH (both NPNs conduct);
-%    otherwise at least one PNP pulls the output HIGH.  => Y = NOT(A.B)
-%  Inputs and output each carry an indicator LED (220 ohm).
+%    Output LOW only when BOTH inputs HIGH (both NPNs conduct);
+%    otherwise a PNP pulls the output HIGH.   => Y = NOT(A.B)
 %  Compile:  pdflatex circuit.tex
 % ============================================================
-\documentclass[border=16pt]{standalone}
+\documentclass[border=18pt]{standalone}
 \usepackage{circuitikz}
 \usepackage{amsmath}
 \usetikzlibrary{calc}
@@ -33,69 +32,67 @@
   \ctikzset{tripoles/thickness=1, bipoles/thickness=1}
 
   % ---------- supply rail (+5 V) ----------
-  \draw (-3.5,11) -- (17,11);
-  \node[anchor=south] at (7,11.05) {\textbf{$V_{CC}=+5\,\mathrm{V}$}};
+  \draw (-5,12) -- (21,12);
+  \node[anchor=south] at (8,12.05) {\textbf{$V_{CC}=+5\,\mathrm{V}$}};
 
   % ===================== PULL-UP : two PNP in parallel =====================
-  \node[pnp] (pa) at (8,8.7) {};
-  \node[pnp] (pb) at (12,8.7) {};
+  \node[pnp] (pa) at (10,9.4) {};
+  \node[pnp] (pb) at (15,9.4) {};
   \pinlabelsP{pa}\pinlabelsP{pb}
-  \node[font=\footnotesize,align=left,anchor=west] at (8.95,8.7) {Q3\\2N3906};
-  \node[font=\footnotesize,align=left,anchor=west] at (12.95,8.7) {Q4\\2N3906};
-  \draw (pa.E) -- (8,11);   \fill (8,11) circle (1.6pt);
-  \draw (pb.E) -- (12,11);  \fill (12,11) circle (1.6pt);
+  \node[font=\footnotesize,align=left,anchor=west] at (10.95,9.4) {Q3\\2N3906};
+  \node[font=\footnotesize,align=left,anchor=west] at (15.95,9.4) {Q4\\2N3906};
+  \draw (pa.E) -- (10,12);  \fill (10,12) circle (1.6pt);
+  \draw (pb.E) -- (15,12);  \fill (15,12) circle (1.6pt);
   % both collectors -> output bus
-  \draw (pa.C) -- (8,6.0);
-  \draw (pb.C) -- (12,6.0);
-  \draw (8,6.0) -- (12,6.0);
+  \draw (pa.C) -- (10,6.4);
+  \draw (pb.C) -- (15,6.4);
+  \draw (10,6.4) -- (15,6.4);
 
   % ===================== OUTPUT node =====================
-  \coordinate (OUT) at (10,6.0);
+  \coordinate (OUT) at (12.5,6.4);
   \fill (OUT) circle (1.6pt);
-  \draw (OUT) -- (16.5,6.0) node[ocirc]{} node[right]{Output $Y=\overline{A\cdot B}$};
+  \draw (OUT) -- (20.5,6.4) node[ocirc]{} node[right]{Output $Y=\overline{A\cdot B}$};
 
   % ===================== PULL-DOWN : two NPN in series =====================
-  \node[npn] (na) at (10,4.0) {};
-  \node[npn] (nb) at (10,1.3) {};
+  \node[npn] (na) at (12.5,4.4) {};
+  \node[npn] (nb) at (12.5,1.6) {};
   \pinlabelsN{na}\pinlabelsN{nb}
-  \node[font=\footnotesize,align=left,anchor=west] at (10.95,4.0) {Q1\\2N3904};
-  \node[font=\footnotesize,align=left,anchor=west] at (10.95,1.3) {Q2\\2N3904};
-  \draw (na.C) -- (OUT);                 % top NPN collector -> output
-  \draw (na.E) -- (nb.C);                % series link
-  \draw (nb.E) -- (10,0.2) pic{gnd};     % bottom NPN emitter -> GND
+  \node[font=\footnotesize,align=left,anchor=west] at (13.45,4.4) {Q1\\2N3904};
+  \node[font=\footnotesize,align=left,anchor=west] at (13.45,1.6) {Q2\\2N3904};
+  \draw (na.C) -- (OUT);
+  \draw (na.E) -- (nb.C);
+  \draw (nb.E) -- (12.5,0.4) pic{gnd};
 
   % ===================== INPUT A (drives PNP Q3 and NPN Q1) =====================
-  \coordinate (Ain) at (-3.5,7.0);
-  \draw (Ain) node[ocirc]{} node[left]{Input $A$} -- (2.5,7.0);
-  \draw (2.5,7.0) -- (2.5,4.0);          % A rail
-  \fill (2.5,7.0) circle (1.6pt);  \fill (2.5,4.0) circle (1.6pt);
-  % A -> R_BA1 -> PNP Q3 base   (up to the PNP base height)
-  \draw (2.5,7.0) -- (2.5,8.7) to[R, l={$R_{A1}=10\,\mathrm{k}\Omega$}] (pa.B);
-  % A -> R_BA2 -> NPN Q1 base
-  \draw (2.5,4.0) to[R, l={$R_{A2}=10\,\mathrm{k}\Omega$}] (na.B);
+  \draw (-5,7.2) node[ocirc]{} node[left]{Input $A$} -- (2.5,7.2);
+  \draw (2.5,9.4) -- (2.5,4.4);          % A rail
+  \fill (2.5,7.2) circle (1.6pt); \fill (2.5,9.4) circle (1.6pt); \fill (2.5,4.4) circle (1.6pt);
+  % A -> R_A1 -> PNP Q3 base  (plain wire clears the B rail, then the resistor)
+  \draw (2.5,9.4) -- (5.5,9.4) to[R, l={$R_{A1}=10\,\mathrm{k}\Omega$}] (pa.B);
+  % A -> R_A2 -> NPN Q1 base
+  \draw (2.5,4.4) -- (6.5,4.4) to[R, l={$R_{A2}=10\,\mathrm{k}\Omega$}] (na.B);
   % input LED on A
-  \draw (2.5,4.0) -- (2.5,2.6);
-  \draw (2.5,2.6) to[R, l_={$R_{inA}=220\,\Omega$}] (2.5,1.2)
-        to[leD, l_={LED$_{A}$}] (2.5,0.0) -- (2.5,-0.05) pic{gnd};
+  \draw (2.5,4.4) -- (2.5,3.0);
+  \draw (2.5,3.0) to[R, l_={$R_{inA}=220\,\Omega$}] (2.5,1.4)
+        to[leD, l_={LED$_{A}$}] (2.5,-0.2) -- (2.5,-0.25) pic{gnd};
 
   % ===================== INPUT B (drives PNP Q4 and NPN Q2) =====================
-  \coordinate (Bin) at (-3.5,5.6);
-  \draw (Bin) node[ocirc]{} node[left]{Input $B$} -- (4.5,5.6);
-  \draw (4.5,5.6) -- (4.5,1.3);          % B rail
-  \fill (4.5,5.6) circle (1.6pt);  \fill (4.5,1.3) circle (1.6pt);
-  % B -> R_BB1 -> PNP Q4 base  (route up and over the top to the right PNP)
-  \draw (4.5,5.6) -- (4.5,10.4) to[R, l_={$R_{B1}=10\,\mathrm{k}\Omega$}] (11.3,10.4) -- (pb.B);
-  % B -> R_BB2 -> NPN Q2 base
-  \draw (4.5,1.3) to[R, l={$R_{B2}=10\,\mathrm{k}\Omega$}] (nb.B);
+  \draw (-5,5.6) node[ocirc]{} node[left]{Input $B$} -- (4.5,5.6);
+  \draw (4.5,10.9) -- (4.5,1.6);         % B rail
+  \fill (4.5,5.6) circle (1.6pt); \fill (4.5,10.9) circle (1.6pt); \fill (4.5,1.6) circle (1.6pt);
+  % B -> R_B1 -> PNP Q4 base  (over the top, straight down into the base)
+  \draw (4.5,10.9) -- (8.0,10.9) to[R, l={$R_{B1}=10\,\mathrm{k}\Omega$}] ($(pb.B)+(0,1.5)$) -- (pb.B);
+  % B -> R_B2 -> NPN Q2 base
+  \draw (4.5,1.6) -- (6.5,1.6) to[R, l_={$R_{B2}=10\,\mathrm{k}\Omega$}] (nb.B);
   % input LED on B
-  \draw (4.5,1.3) -- (6.0,1.3);
-  \draw (6.0,1.3) to[R, l={$R_{inB}=220\,\Omega$}] (6.0,0.0)
-        to[leD, l={LED$_{B}$}] (6.0,-1.2) -- (6.0,-1.25) pic{gnd};
+  \draw (4.5,1.6) -- (4.5,0.3);
+  \draw (4.5,0.3) to[R, l={$R_{inB}=220\,\Omega$}] (4.5,-1.3)
+        to[leD, l={LED$_{B}$}] (4.5,-2.9) -- (4.5,-2.95) pic{gnd};
 
   % ===================== OUTPUT LED =====================
-  \fill (14.5,6.0) circle (1.6pt);
-  \draw (14.5,6.0) to[R, l={$R_{out}=220\,\Omega$}] (14.5,4.1)
-        to[leD, l={LED$_{\mathrm{out}}$}] (14.5,2.9) -- (14.5,2.85) pic{gnd};
+  \fill (17.5,6.4) circle (1.6pt);
+  \draw (17.5,6.4) to[R, l={$R_{out}=220\,\Omega$}] (17.5,4.5)
+        to[leD, l={LED$_{\mathrm{out}}$}] (17.5,2.9) -- (17.5,2.85) pic{gnd};
 
 \end{circuitikz}
 \end{document}
